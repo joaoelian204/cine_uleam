@@ -2,8 +2,8 @@
 # Proyecto Vue 3 + Vite + TypeScript + Supabase
 
 [build]
-  # Comando para construir el proyecto
-  command = "npm ci --legacy-peer-deps && npm run build"
+  # Comando para construir el proyecto con script robusto
+  command = "chmod +x build.sh && ./build.sh"
   
   # Directorio donde Vite genera los archivos de producción
   publish = "dist"
@@ -15,13 +15,18 @@
 [build.environment]
   NODE_VERSION = "20"
   NPM_VERSION = "10"
+  # Deshabilitar la instalación automática de dependencias de Netlify
+  NETLIFY_SKIP_AUTOMATIC_DEPENDENCY_INSTALL = "true"
   # Configuraciones para mejorar la estabilidad de npm
   NPM_CONFIG_REGISTRY = "https://registry.npmjs.org/"
-  NPM_CONFIG_FETCH_TIMEOUT = "300000"
-  NPM_CONFIG_FETCH_RETRIES = "5"
-  NPM_CONFIG_FETCH_RETRY_FACTOR = "10"
-  NPM_CONFIG_FETCH_RETRY_MINTIMEOUT = "10000"
-  NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT = "60000"
+  NPM_CONFIG_FETCH_TIMEOUT = "600000"
+  NPM_CONFIG_FETCH_RETRIES = "10"
+  NPM_CONFIG_FETCH_RETRY_FACTOR = "20"
+  NPM_CONFIG_FETCH_RETRY_MINTIMEOUT = "20000"
+  NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT = "120000"
+  # Configuraciones adicionales de red
+  NPM_CONFIG_MAXSOCKETS = "15"
+  NPM_CONFIG_NETWORK_CONCURRENCY = "1"
   # Aumentar memoria para el build de Vue/Vite
   NODE_OPTIONS = "--max-old-space-size=4096"
 

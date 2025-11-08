@@ -1,0 +1,7 @@
+# Deshabilitar instalación automática de dependencias en Netlify
+# Esto fuerza a Netlify a usar nuestro comando personalizado
+[build]
+  skip_processing = false
+  
+[build.processing]
+  skip_processing = false
