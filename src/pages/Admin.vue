@@ -24,7 +24,7 @@
           <div class="relative">
             <button 
               @click="showMobileMenu = !showMobileMenu"
-              class="w-full flex items-center justify-between py-4 px-4 text-left text-sm font-medium text-gray-700 border-b bg-gradient-to-r from-gray-50 to-white rounded-lg"
+              class="w-full flex items-center justify-between py-4 px-4 text-left text-sm font-medium text-gray-700 border-b bg-linear-to-r from-gray-50 to-white rounded-lg"
             >
               <span class="font-semibold">{{ getActiveTabLabel() }}</span>
               <svg class="w-5 h-5 transition-transform text-[#C1272D]" :class="{ 'rotate-180': showMobileMenu }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,51 +37,61 @@
                 @click="selectTab('dashboard')"
                 :class="[
                   'w-full text-left py-3 px-4 text-sm font-medium transition-all duration-200 flex items-center space-x-3',
-                  activeTab === 'dashboard' ? 'bg-gradient-to-r from-[#C1272D] to-[#8B1F23] text-white' : 'text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100'
+                  activeTab === 'dashboard' ? 'bg-linear-to-r from-[#C1272D] to-[#8B1F23] text-white' : 'text-gray-700 hover:bg-linear-to-r hover:from-gray-50 hover:to-gray-100'
                 ]"
               >
-                <div class="w-2 h-2 rounded-full bg-gradient-to-r from-[#C1272D] to-[#8B1F23]"></div>
+                <div class="w-2 h-2 rounded-full bg-linear-to-r from-[#C1272D] to-[#8B1F23]"></div>
                 <span>Dashboard</span>
               </button>
               <button 
                 @click="selectTab('peliculas')"
                 :class="[
                   'w-full text-left py-3 px-4 text-sm font-medium transition-all duration-200 flex items-center space-x-3',
-                  activeTab === 'peliculas' ? 'bg-gradient-to-r from-[#C1272D] to-[#8B1F23] text-white' : 'text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100'
+                  activeTab === 'peliculas' ? 'bg-linear-to-r from-[#C1272D] to-[#8B1F23] text-white' : 'text-gray-700 hover:bg-linear-to-r hover:from-gray-50 hover:to-gray-100'
                 ]"
               >
-                <div class="w-2 h-2 rounded-full bg-gradient-to-r from-[#F59E0B] to-[#D97706]"></div>
+                <div class="w-2 h-2 rounded-full bg-linear-to-r from-[#F59E0B] to-[#D97706]"></div>
                 <span>Gestión de Películas</span>
               </button>
               <button 
                 @click="selectTab('salas')"
                 :class="[
                   'w-full text-left py-3 px-4 text-sm font-medium transition-all duration-200 flex items-center space-x-3',
-                  activeTab === 'salas' ? 'bg-gradient-to-r from-[#C1272D] to-[#8B1F23] text-white' : 'text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100'
+                  activeTab === 'salas' ? 'bg-linear-to-r from-[#C1272D] to-[#8B1F23] text-white' : 'text-gray-700 hover:bg-linear-to-r hover:from-gray-50 hover:to-gray-100'
                 ]"
               >
-                <div class="w-2 h-2 rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#1E40AF]"></div>
+                <div class="w-2 h-2 rounded-full bg-linear-to-r from-[#1E3A8A] to-[#1E40AF]"></div>
                 <span>Configurar Salas</span>
               </button>
               <button 
                 @click="selectTab('estadisticas')"
                 :class="[
                   'w-full text-left py-3 px-4 text-sm font-medium transition-all duration-200 flex items-center space-x-3',
-                  activeTab === 'estadisticas' ? 'bg-gradient-to-r from-[#C1272D] to-[#8B1F23] text-white' : 'text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100'
+                  activeTab === 'estadisticas' ? 'bg-linear-to-r from-[#C1272D] to-[#8B1F23] text-white' : 'text-gray-700 hover:bg-linear-to-r hover:from-gray-50 hover:to-gray-100'
                 ]"
               >
-                <div class="w-2 h-2 rounded-full bg-gradient-to-r from-[#059669] to-[#047857]"></div>
+                <div class="w-2 h-2 rounded-full bg-linear-to-r from-[#059669] to-[#047857]"></div>
                 <span>Estadísticas</span>
               </button>
               <button 
                 @click="selectTab('solicitudes')"
                 :class="[
-                  'w-full text-left py-3 px-4 text-sm font-medium transition-all duration-200 rounded-b-lg flex items-center space-x-3',
-                  activeTab === 'solicitudes' ? 'bg-gradient-to-r from-[#C1272D] to-[#8B1F23] text-white' : 'text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100'
+                  'w-full text-left py-3 px-4 text-sm font-medium transition-all duration-200 flex items-center space-x-3',
+                  activeTab === 'solicitudes' ? 'bg-linear-to-r from-[#C1272D] to-[#8B1F23] text-white' : 'text-gray-700 hover:bg-linear-to-r hover:from-gray-50 hover:to-gray-100'
                 ]"
               >
-                <div class="w-2 h-2 rounded-full bg-gradient-to-r from-[#7C3AED] to-[#6D28D9]"></div>
+                <div class="w-2 h-2 rounded-full bg-linear-to-r from-[#7C3AED] to-[#6D28D9]"></div>
                 <span>Solicitudes de Alquiler</span>
+              </button>
+              <button 
+                @click="selectTab('asistencia')"
+                :class="[
+                  'w-full text-left py-3 px-4 text-sm font-medium transition-all duration-200 rounded-b-lg flex items-center space-x-3',
+                  activeTab === 'asistencia' ? 'bg-linear-to-r from-[#C1272D] to-[#8B1F23] text-white' : 'text-gray-700 hover:bg-linear-to-r hover:from-gray-50 hover:to-gray-100'
+                ]"
+              >
+                <div class="w-2 h-2 rounded-full bg-linear-to-r from-[#10B981] to-[#059669]"></div>
+                <span>Control de Asistencia</span>
               </button>
             </div>
           </div>
@@ -94,11 +104,11 @@
             :class="[
               'py-3 px-6 text-sm font-semibold rounded-lg transition-all duration-200 flex items-center space-x-2',
               activeTab === 'dashboard' 
-                ? 'bg-gradient-to-r from-[#C1272D] to-[#8B1F23] text-white shadow-lg transform scale-105' 
+                ? 'bg-linear-to-r from-[#C1272D] to-[#8B1F23] text-white shadow-lg transform scale-105' 
                 : 'text-gray-600 hover:text-[#C1272D] hover:bg-gray-50'
             ]"
           >
-            <div class="w-3 h-3 rounded-full bg-gradient-to-r from-[#C1272D] to-[#8B1F23]"></div>
+            <div class="w-3 h-3 rounded-full bg-linear-to-r from-[#C1272D] to-[#8B1F23]"></div>
             <span>Dashboard</span>
           </button>
           <button 
@@ -106,11 +116,11 @@
             :class="[
               'py-3 px-6 text-sm font-semibold rounded-lg transition-all duration-200 flex items-center space-x-2',
               activeTab === 'peliculas' 
-                ? 'bg-gradient-to-r from-[#C1272D] to-[#8B1F23] text-white shadow-lg transform scale-105' 
+                ? 'bg-linear-to-r from-[#C1272D] to-[#8B1F23] text-white shadow-lg transform scale-105' 
                 : 'text-gray-600 hover:text-[#C1272D] hover:bg-gray-50'
             ]"
           >
-            <div class="w-3 h-3 rounded-full bg-gradient-to-r from-[#F59E0B] to-[#D97706]"></div>
+            <div class="w-3 h-3 rounded-full bg-linear-to-r from-[#F59E0B] to-[#D97706]"></div>
             <span>Películas</span>
           </button>
           <button 
@@ -118,11 +128,11 @@
             :class="[
               'py-3 px-6 text-sm font-semibold rounded-lg transition-all duration-200 flex items-center space-x-2',
               activeTab === 'salas' 
-                ? 'bg-gradient-to-r from-[#C1272D] to-[#8B1F23] text-white shadow-lg transform scale-105' 
+                ? 'bg-linear-to-r from-[#C1272D] to-[#8B1F23] text-white shadow-lg transform scale-105' 
                 : 'text-gray-600 hover:text-[#C1272D] hover:bg-gray-50'
             ]"
           >
-            <div class="w-3 h-3 rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#1E40AF]"></div>
+            <div class="w-3 h-3 rounded-full bg-linear-to-r from-[#1E3A8A] to-[#1E40AF]"></div>
             <span>Salas</span>
           </button>
           <button 
@@ -130,11 +140,11 @@
             :class="[
               'py-3 px-6 text-sm font-semibold rounded-lg transition-all duration-200 flex items-center space-x-2',
               activeTab === 'estadisticas' 
-                ? 'bg-gradient-to-r from-[#C1272D] to-[#8B1F23] text-white shadow-lg transform scale-105' 
+                ? 'bg-linear-to-r from-[#C1272D] to-[#8B1F23] text-white shadow-lg transform scale-105' 
                 : 'text-gray-600 hover:text-[#C1272D] hover:bg-gray-50'
             ]"
           >
-            <div class="w-3 h-3 rounded-full bg-gradient-to-r from-[#059669] to-[#047857]"></div>
+            <div class="w-3 h-3 rounded-full bg-linear-to-r from-[#059669] to-[#047857]"></div>
             <span>Estadísticas</span>
           </button>
           <button 
@@ -142,12 +152,24 @@
             :class="[
               'py-3 px-6 text-sm font-semibold rounded-lg transition-all duration-200 flex items-center space-x-2',
               activeTab === 'solicitudes' 
-                ? 'bg-gradient-to-r from-[#C1272D] to-[#8B1F23] text-white shadow-lg transform scale-105' 
+                ? 'bg-linear-to-r from-[#C1272D] to-[#8B1F23] text-white shadow-lg transform scale-105' 
                 : 'text-gray-600 hover:text-[#C1272D] hover:bg-gray-50'
             ]"
           >
-            <div class="w-3 h-3 rounded-full bg-gradient-to-r from-[#7C3AED] to-[#6D28D9]"></div>
+            <div class="w-3 h-3 rounded-full bg-linear-to-r from-[#7C3AED] to-[#6D28D9]"></div>
             <span>Solicitudes</span>
+          </button>
+          <button 
+            @click="activeTab = 'asistencia'"
+            :class="[
+              'py-3 px-6 text-sm font-semibold rounded-lg transition-all duration-200 flex items-center space-x-2',
+              activeTab === 'asistencia' 
+                ? 'bg-linear-to-r from-[#C1272D] to-[#8B1F23] text-white shadow-lg transform scale-105' 
+                : 'text-gray-600 hover:text-[#C1272D] hover:bg-gray-50'
+            ]"
+          >
+            <div class="w-3 h-3 rounded-full bg-linear-to-r from-[#10B981] to-[#059669]"></div>
+            <span>Asistencia</span>
           </button>
         </div>
       </div>
@@ -201,22 +223,29 @@
           @show-toast="displayToast"
         />
 
+        <!-- Control de Asistencia QR -->
+        <AttendanceManagement
+          v-if="activeTab === 'asistencia'"
+          @show-toast="displayToast"
+        />
+
       </div>
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuth } from '../composables/useAuth'
-import { useAdmin } from '../composables/useAdmin'
 import Toast from '../components/Toast.vue'
 import AdminDashboard from '../components/admin/AdminDashboard.vue'
+import AdminStatistics from '../components/admin/AdminStatistics.vue'
+import AttendanceManagement from '../components/admin/AttendanceManagement.vue'
 import MovieManagement from '../components/admin/MovieManagement.vue'
 import SalaManagement from '../components/admin/SalaManagement.vue'
-import AdminStatistics from '../components/admin/AdminStatistics.vue'
 import SolicitudAlquilerManagement from '../components/admin/SolicitudAlquilerManagement.vue'
+import { useAdmin } from '../composables/useAdmin'
+import { useAuth } from '../composables/useAuth'
 import type { Pelicula } from '../interfaces/Pelicula'
 import type { Sala } from '../interfaces/Sala'
 
@@ -272,7 +301,8 @@ const getActiveTabLabel = () => {
     peliculas: 'Gestión de Películas',
     salas: 'Configurar Salas',
     estadisticas: 'Estadísticas',
-    solicitudes: 'Solicitudes de Alquiler'
+    solicitudes: 'Solicitudes de Alquiler',
+    asistencia: 'Control de Asistencia'
   }
   return labels[activeTab.value] || 'Dashboard'
 }
