@@ -3,7 +3,7 @@
 
 [build]
   # Comando para construir el proyecto
-  command = "npm run build"
+  command = "npm ci --legacy-peer-deps && npm run build"
   
   # Directorio donde Vite genera los archivos de producción
   publish = "dist"
@@ -15,8 +15,13 @@
 [build.environment]
   NODE_VERSION = "20"
   NPM_VERSION = "10"
-  # Instalar dependencias con flag para compatibilidad
-  NPM_FLAGS = "--legacy-peer-deps"
+  # Configuraciones para mejorar la estabilidad de npm
+  NPM_CONFIG_REGISTRY = "https://registry.npmjs.org/"
+  NPM_CONFIG_FETCH_TIMEOUT = "300000"
+  NPM_CONFIG_FETCH_RETRIES = "5"
+  NPM_CONFIG_FETCH_RETRY_FACTOR = "10"
+  NPM_CONFIG_FETCH_RETRY_MINTIMEOUT = "10000"
+  NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT = "60000"
   # Aumentar memoria para el build de Vue/Vite
   NODE_OPTIONS = "--max-old-space-size=4096"
 
