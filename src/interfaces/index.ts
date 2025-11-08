@@ -1,0 +1,6 @@
+export * from './Usuario'
+export * from './Sala'
+export * from './Pelicula'
+export * from './Asiento'
+export * from './Reserva'
+export * from './SolicitudAlquiler'
