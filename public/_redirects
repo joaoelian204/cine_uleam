@@ -7,6 +7,7 @@
 /login              /index.html   200
 /registro           /index.html   200
 /reset-password     /index.html   200
+/reset-password/*   /index.html   200
 /alquiler-sala      /index.html   200
 /mis-tickets        /index.html   200
 
@@ -23,6 +24,12 @@
 /reservar/*         /index.html   200
 /tickets            /index.html   200
 /alquiler           /index.html   200
+
+# === Redirecciones especiales para Auth ===
+# Manejar tokens y parámetros de Supabase Auth
+/reset-password?*   /index.html   200
+/auth/*             /index.html   200
+/#*                 /index.html   200
 
 # === Redirecciones para assets y API ===
 # No redirigir archivos estáticos

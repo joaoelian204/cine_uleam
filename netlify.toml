@@ -56,6 +56,20 @@
   status = 200
   force = false
 
+# Redirección especial para reset password con parámetros
+[[redirects]]
+  from = "/reset-password/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+# Manejar URLs con fragments y query parameters de Supabase Auth
+[[redirects]]
+  from = "/reset-password?*"
+  to = "/index.html"
+  status = 200
+  force = false
+
 [[redirects]]
   from = "/movie/*"
   to = "/index.html"

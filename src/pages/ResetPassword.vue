@@ -185,10 +185,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { supabase } from '../lib/supabase'
 import Toast from '../components/Toast.vue'
+import { supabase } from '../lib/supabase'
 
 const router = useRouter()
 
@@ -198,6 +198,7 @@ const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const isLoading = ref(false)
 const errorMessage = ref('')
+const isTokenValid = ref(false)
 
 // Toast state
 const toastConfig = ref({
@@ -210,6 +211,42 @@ const toastConfig = ref({
 const displayToast = (title: string, message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
   toastConfig.value = { show: true, title, message, type }
 }
+
+// Verificar token de reset password en la URL
+onMounted(async () => {
+  try {
+    // Obtener el hash de la URL que contiene los parámetros de Supabase
+    const hashParams = new URLSearchParams(window.location.hash.substring(1))
+    const accessToken = hashParams.get('access_token')
+    const refreshToken = hashParams.get('refresh_token')
+    
+    if (accessToken && refreshToken) {
+      // Establecer la sesión con los tokens
+      const { error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken
+      })
+      
+      if (error) {
+        console.error('Error al establecer sesión:', error)
+        displayToast('Error', 'El enlace de restablecimiento no es válido o ha expirado', 'error')
+        // Redirigir al login después de unos segundos
+        setTimeout(() => router.push('/login'), 3000)
+      } else {
+        isTokenValid.value = true
+        console.log('Sesión establecida correctamente para reset password')
+      }
+    } else {
+      console.error('No se encontraron tokens en la URL')
+      displayToast('Error', 'El enlace de restablecimiento no es válido', 'error')
+      setTimeout(() => router.push('/login'), 3000)
+    }
+  } catch (error) {
+    console.error('Error al procesar el token:', error)
+    displayToast('Error', 'Error al procesar el enlace de restablecimiento', 'error')
+    setTimeout(() => router.push('/login'), 3000)
+  }
+})
 
 // Calcular fortaleza de contraseña
 const passwordStrength = computed(() => {
@@ -255,6 +292,13 @@ const passwordStrengthWidth = computed(() => {
 
 const handleResetPassword = async () => {
   errorMessage.value = ''
+
+  // Verificar que tenemos una sesión válida
+  if (!isTokenValid.value) {
+    errorMessage.value = 'Token de restablecimiento inválido'
+    displayToast('Error', 'El enlace de restablecimiento no es válido', 'error')
+    return
+  }
 
   // Validaciones
   if (newPassword.value.length < 6) {
