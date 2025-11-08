@@ -6,6 +6,7 @@ import { defineConfig } from "vite";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [vue(), tailwindcss()],
+  base: "/", // Asegurar que la base sea correcta para producción
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),

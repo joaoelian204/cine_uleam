@@ -33,17 +33,67 @@
 # Redirecciones para SPA (Single Page Application)
 # Esto asegura que todas las rutas de Vue Router funcionen correctamente
 [[redirects]]
-  from = "/*"
+  from = "/admin/*"
   to = "/index.html"
   status = 200
+  force = false
 
-# Redirección específica para la API de Supabase (si es necesario)
+[[redirects]]
+  from = "/login"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/registro" 
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/reset-password"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/movie/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/reserve/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/alquiler-sala"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/mis-tickets"
+  to = "/index.html"
+  status = 200
+  force = false
+
+# Redirección para la API de Supabase
 [[redirects]]
   from = "/api/*"
   to = "https://kdkblwmwlnpibaysggib.supabase.co/rest/v1/:splat"
   status = 200
   force = true
   headers = {X-From = "Netlify"}
+
+# Redirección catch-all para Vue Router (DEBE estar al final)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
 
 # Headers de seguridad y caché
 [[headers]]
