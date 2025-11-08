@@ -741,71 +741,14 @@ const startScanner = async () => {
       throw new Error("Tu navegador no soporta acceso a la cámara");
     }
 
-    // Verificar si estamos en HTTPS o localhost
-    const isSecureContext =
-      window.isSecureContext ||
-      location.protocol === "https:" ||
-      location.hostname === "localhost" ||
-      location.hostname === "127.0.0.1";
-
-    if (!isSecureContext) {
-      throw new Error("La cámara requiere una conexión HTTPS segura");
-    }
-
-    console.log("🔍 Solicitando acceso a la cámara...");
-
-    // Configuraciones de cámara progresivas (de más específica a más general)
-    const cameraConfigs = [
-      // Configuración ideal para móviles
-      {
-        video: {
-          width: { ideal: 1280, min: 320 },
-          height: { ideal: 720, min: 240 },
-          facingMode: "environment", // Cámara trasera
-        },
+    // Solicitar acceso a la cámara
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        width: { ideal: 1280, min: 640 },
+        height: { ideal: 720, min: 480 },
+        facingMode: "environment",
       },
-      // Configuración alternativa
-      {
-        video: {
-          width: { ideal: 640, min: 320 },
-          height: { ideal: 480, min: 240 },
-          facingMode: "environment",
-        },
-      },
-      // Configuración básica
-      {
-        video: {
-          facingMode: "environment",
-        },
-      },
-      // Configuración mínima
-      {
-        video: true,
-      },
-    ];
-
-    let cameraError = null;
-
-    // Intentar cada configuración hasta que una funcione
-    for (const config of cameraConfigs) {
-      try {
-        console.log("🎥 Probando configuración:", config);
-        stream = await navigator.mediaDevices.getUserMedia(config);
-        console.log("✅ Configuración exitosa:", config);
-        break;
-      } catch (err: any) {
-        console.warn("❌ Configuración falló:", config, err.message);
-        cameraError = err;
-        continue;
-      }
-    }
-
-    if (!stream) {
-      throw (
-        cameraError ||
-        new Error("No se pudo acceder a la cámara con ninguna configuración")
-      );
-    }
+    });
 
     await nextTick();
 
@@ -813,14 +756,9 @@ const startScanner = async () => {
       videoElement.value.srcObject = stream;
 
       // Esperar a que el video esté listo
-      await new Promise<void>((resolve, reject) => {
+      await new Promise<void>((resolve) => {
         if (videoElement.value) {
-          const timeoutId = setTimeout(() => {
-            reject(new Error("Timeout al cargar el video"));
-          }, 10000); // 10 segundos timeout
-
           videoElement.value.onloadedmetadata = () => {
-            clearTimeout(timeoutId);
             videoElement.value
               ?.play()
               .then(() => {
@@ -829,78 +767,32 @@ const startScanner = async () => {
               })
               .catch((playError) => {
                 console.error("Error al reproducir video:", playError);
-                reject(playError);
+                resolve(); // Continuar aunque haya error de reproducción
               });
-          };
-
-          videoElement.value.onerror = (err) => {
-            clearTimeout(timeoutId);
-            reject(err);
           };
         }
       });
 
       isScanning.value = true;
       startQRDetection();
-      console.log("🎥 Escáner QR iniciado exitosamente");
+      console.log("🎥 Escáner QR iniciado");
     }
   } catch (error: any) {
-    console.error("❌ Error al acceder a la cámara:", error);
+    console.error("Error al acceder a la cámara:", error);
     let errorMessage = "No se pudo acceder a la cámara.";
 
     if (error.name === "NotAllowedError") {
-      errorMessage = `🚫 Acceso a la cámara denegado.
-
-Pasos para solucionarlo:
-1. Permite el acceso a la cámara en tu navegador
-2. Verifica que no tengas otras aplicaciones usando la cámara
-3. En Chrome: Ve a Configuración > Privacidad > Configuración del sitio > Cámara
-4. Asegúrate de que este sitio tenga permisos de cámara`;
+      errorMessage =
+        "Acceso a la cámara denegado. Por favor, permite el acceso a la cámara en tu navegador.";
     } else if (error.name === "NotFoundError") {
-      errorMessage = "📷 No se encontró ninguna cámara en tu dispositivo.";
+      errorMessage = "No se encontró ninguna cámara en tu dispositivo.";
     } else if (error.name === "NotSupportedError") {
-      errorMessage = `🌐 Tu navegador no soporta acceso a la cámara.
-
-Prueba con:
-- Chrome (recomendado)
-- Firefox
-- Safari (en iOS)`;
-    } else if (error.name === "NotReadableError") {
-      errorMessage = `⚠️ La cámara está en uso por otra aplicación.
-
-Cierra otras aplicaciones que puedan estar usando la cámara e inténtalo de nuevo.`;
-    } else if (error.message.includes("HTTPS")) {
-      errorMessage = `🔒 Se requiere conexión HTTPS segura.
-
-La cámara solo funciona en:
-- HTTPS (recomendado)
-- localhost
-- 127.0.0.1
-
-URL actual: ${location.protocol}//${location.host}`;
+      errorMessage = "Tu navegador no soporta acceso a la cámara.";
     } else if (error.message) {
       errorMessage = error.message;
     }
 
-    // Mostrar error más detallado
-    const userAgent = navigator.userAgent;
-    const additionalInfo = `
-
-ℹ️ Información técnica:
-- Navegador: ${
-      userAgent.includes("Chrome")
-        ? "Chrome"
-        : userAgent.includes("Firefox")
-        ? "Firefox"
-        : userAgent.includes("Safari")
-        ? "Safari"
-        : "Otro"
-    }
-- Dispositivo: ${/Mobi|Android/i.test(userAgent) ? "Móvil" : "Escritorio"}
-- URL: ${location.href}
-- HTTPS: ${window.isSecureContext ? "Sí" : "No"}`;
-
-    alert(errorMessage + additionalInfo);
+    alert(errorMessage);
   } finally {
     isLoading.value = false;
   }
@@ -1079,193 +971,31 @@ const testCameraPermission = async () => {
 
     // Verificar si el navegador soporta getUserMedia
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      alert(`❌ Tu navegador no soporta acceso a la cámara
-
-Navegadores compatibles:
-- Chrome (recomendado)
-- Firefox
-- Safari
-- Edge
-
-Navegador actual: ${navigator.userAgent}`);
+      alert("❌ Tu navegador no soporta acceso a la cámara");
       return;
     }
 
-    // Verificar contexto seguro
-    const isSecureContext =
-      window.isSecureContext ||
-      location.protocol === "https:" ||
-      location.hostname === "localhost" ||
-      location.hostname === "127.0.0.1";
+    // Solicitar acceso temporal a la cámara
+    const testStream = await navigator.mediaDevices.getUserMedia({
+      video: { width: 640, height: 480 },
+    });
 
-    if (!isSecureContext) {
-      alert(`🔒 Se requiere conexión HTTPS
+    console.log("✅ Acceso a cámara exitoso");
+    alert("✅ Cámara disponible y funcionando correctamente");
 
-La cámara solo funciona en:
-✅ HTTPS (https://)
-✅ localhost
-✅ 127.0.0.1
-
-URL actual: ${location.href}
-
-Para desarrollo local usa: http://localhost:5173`);
-      return;
-    }
-
-    console.log("🔍 Solicitando permisos de cámara...");
-
-    // Configuraciones de prueba progresivas
-    const testConfigs = [
-      { video: { facingMode: "environment", width: 640, height: 480 } },
-      { video: { facingMode: "environment" } },
-      { video: { width: 640, height: 480 } },
-      { video: true },
-    ];
-
-    let testStream = null;
-    let successConfig = null;
-
-    for (const config of testConfigs) {
-      try {
-        console.log("🧪 Probando configuración:", config);
-        testStream = await navigator.mediaDevices.getUserMedia(config);
-        successConfig = config;
-        break;
-      } catch (err) {
-        console.warn("❌ Configuración falló:", config, err);
-        continue;
-      }
-    }
-
-    if (testStream) {
-      console.log(
-        "✅ Acceso a cámara exitoso con configuración:",
-        successConfig
-      );
-
-      // Obtener información de los tracks
-      const videoTracks = testStream.getVideoTracks();
-      if (videoTracks.length > 0) {
-        const videoTrack = videoTracks[0];
-        if (videoTrack) {
-          const settings = videoTrack.getSettings();
-
-          alert(`✅ Cámara disponible y funcionando
-
-📋 Información técnica:
-- Resolución: ${settings.width || 'Desconocida'}x${settings.height || 'Desconocida'}
-- Dispositivo: ${videoTrack.label || "Cámara del dispositivo"}
-- Cámara: ${settings.facingMode || "No especificado"}
-- Configuración usada: ${JSON.stringify(successConfig, null, 2)}
-
-🎯 El escáner QR debería funcionar correctamente.`);
-        } else {
-          alert(`✅ Cámara disponible
-
-🎯 El escáner QR debería funcionar correctamente.`);
-        }
-
-      // Detener el stream de prueba
-      testStream.getTracks().forEach((track) => track.stop());
-    } else {
-      throw new Error(
-        "No se pudo acceder a la cámara con ninguna configuración"
-      );
-    }
+    // Detener el stream de prueba
+    testStream.getTracks().forEach((track) => track.stop());
   } catch (error: any) {
     console.error("❌ Error en prueba de cámara:", error);
 
-    let message = "❌ Error al acceder a la cámara\n\n";
-
+    let message = "Error al acceder a la cámara: ";
     if (error.name === "NotAllowedError") {
-      message += `🚫 Permisos denegados
-
-Pasos para solucionarlo:
-
-📱 En móviles:
-1. Permite el acceso a la cámara cuando aparezca el popup
-2. Ve a Configuración del navegador > Permisos > Cámara
-3. Asegúrate de que este sitio tenga permisos
-
-💻 En escritorio:
-1. Haz clic en el ícono de cámara en la barra de direcciones
-2. Selecciona "Permitir" para este sitio
-3. Recarga la página
-
-🔧 Solución alternativa:
-- En Chrome: chrome://settings/content/camera
-- En Firefox: about:preferences#privacy`;
+      message +=
+        "Permisos denegados. Permite el acceso a la cámara en tu navegador.";
     } else if (error.name === "NotFoundError") {
-      message += `📷 No se encontró ninguna cámara
-
-Verifica:
-- Tu dispositivo tiene cámara
-- La cámara no está bloqueada por hardware
-- Otros programas no están usando la cámara`;
-    } else if (error.name === "NotReadableError") {
-      message += `⚠️ Cámara en uso por otra aplicación
-
-Soluciones:
-- Cierra otras aplicaciones que usen la cámara
-- Reinicia el navegador
-- Reinicia el dispositivo`;
-    } else if (error.name === "OverconstrainedError") {
-      message += `⚙️ Configuración de cámara no compatible
-
-Tu cámara no soporta las especificaciones requeridas.
-Probando con configuraciones más básicas...`;
+      message += "No se encontró ninguna cámara.";
     } else {
-      message += `🔧 Error técnico: ${error.message}
-
-Información del sistema:
-- Navegador: ${navigator.userAgent}
-- URL: ${location.href}
-- HTTPS: ${window.isSecureContext ? "Sí" : "No"}
-- MediaDevices: ${!!navigator.mediaDevices ? "Soportado" : "No soportado"}`;
-    }
-
-    alert(message);
-  }
-};
-1. Permite el acceso a la cámara cuando aparezca el popup
-2. Ve a Configuración del navegador > Permisos > Cámara
-3. Asegúrate de que este sitio tenga permisos
-
-💻 En escritorio:
-1. Haz clic en el ícono de cámara en la barra de direcciones
-2. Selecciona "Permitir" para este sitio
-3. Recarga la página
-
-🔧 Solución alternativa:
-- En Chrome: chrome://settings/content/camera
-- En Firefox: about:preferences#privacy`;
-    } else if (error.name === "NotFoundError") {
-      message += `📷 No se encontró ninguna cámara
-
-Verifica:
-- Tu dispositivo tiene cámara
-- La cámara no está bloqueada por hardware
-- Otros programas no están usando la cámara`;
-    } else if (error.name === "NotReadableError") {
-      message += `⚠️ Cámara en uso por otra aplicación
-
-Soluciones:
-- Cierra otras aplicaciones que usen la cámara
-- Reinicia el navegador
-- Reinicia el dispositivo`;
-    } else if (error.name === "OverconstrainedError") {
-      message += `⚙️ Configuración de cámara no compatible
-
-Tu cámara no soporta las especificaciones requeridas.
-Probando con configuraciones más básicas...`;
-    } else {
-      message += `🔧 Error técnico: ${error.message}
-
-Información del sistema:
-- Navegador: ${navigator.userAgent}
-- URL: ${location.href}
-- HTTPS: ${window.isSecureContext ? "Sí" : "No"}
-- MediaDevices: ${!!navigator.mediaDevices ? "Soportado" : "No soportado"}`;
+      message += error.message;
     }
 
     alert(message);
