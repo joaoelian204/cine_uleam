@@ -1,0 +1,92 @@
+# Configuración de Netlify para CineUleam
+# Proyecto Vue 3 + Vite + TypeScript + Supabase
+
+[build]
+  # Comando para construir el proyecto
+  command = "npm run build"
+  
+  # Directorio donde Vite genera los archivos de producción
+  publish = "dist"
+  
+  # Ignorar archivos que no afectan el build
+  ignore = "git diff --quiet HEAD^ HEAD README.md docs/ *.md"
+
+# Variables de entorno para el build
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_VERSION = "10"
+  # Instalar dependencias con flag para compatibilidad
+  NPM_FLAGS = "--legacy-peer-deps"
+  # Aumentar memoria para el build de Vue/Vite
+  NODE_OPTIONS = "--max-old-space-size=4096"
+
+# Redirecciones para SPA (Single Page Application)
+# Esto asegura que todas las rutas de Vue Router funcionen correctamente
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Redirección específica para la API de Supabase (si es necesario)
+[[redirects]]
+  from = "/api/*"
+  to = "https://kdkblwmwlnpibaysggib.supabase.co/rest/v1/:splat"
+  status = 200
+  force = true
+  headers = {X-From = "Netlify"}
+
+# Headers de seguridad y caché
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Seguridad básica
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+    # Content Security Policy adaptado para CineUleam
+    # Permite Supabase, Perplexity API y recursos locales
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://kdkblwmwlnpibaysggib.supabase.co;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      img-src 'self' data: https: blob:;
+      font-src 'self' https://fonts.gstatic.com;
+      connect-src 'self' https://kdkblwmwlnpibaysggib.supabase.co https://api.perplexity.ai wss://kdkblwmwlnpibaysggib.supabase.co;
+      media-src 'self' blob:;
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self';
+    """
+
+# Caché para assets estáticos (CSS, JS, imágenes)
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Caché para imágenes en la raíz (carpeta public)
+[[headers]]
+  for = "/*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Type = "image/jpeg"
+
+[[headers]]
+  for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Type = "image/png"
+
+[[headers]]
+  for = "/*.svg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Type = "image/svg+xml"
+
+# Sin caché para index.html
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

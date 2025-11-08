@@ -1,0 +1,15 @@
+# Redirecciones para Vue Router en Netlify
+# Esto asegura que todas las rutas funcionen como SPA
+
+# Redirecciones específicas para rutas de CineUleam
+/admin/*    /index.html   200
+/login      /index.html   200
+/registro   /index.html   200
+/pelicula/* /index.html   200
+/reservar/* /index.html   200
+/tickets    /index.html   200
+/alquiler   /index.html   200
+/reset-password /index.html 200
+
+# Redirección catch-all para Vue Router
+/*          /index.html   200
