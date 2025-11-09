@@ -404,6 +404,39 @@
       </div>
     </div>
 
+    <!-- 🔥 NUEVO: Indicador de Asistencia Registrada -->
+    <div
+      v-if="attendanceRegistered"
+      class="bg-green-50 border-l-4 border-green-400 p-4 mb-6 rounded-r-xl animate-pulse"
+    >
+      <div class="flex items-center">
+        <div class="shrink-0">
+          <svg
+            class="w-6 h-6 text-green-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-bold text-green-800">
+            🎉 ¡Asistencia Registrada Automáticamente!
+          </p>
+          <p class="text-sm text-green-700 mt-1">
+            El usuario ha sido marcado como presente en la lista de asistentes del sistema.
+            ✅ Base de datos actualizada correctamente.
+          </p>
+        </div>
+      </div>
+    </div>
+
     <!-- Área del scanner mejorada OPTIMIZADA PARA MÓVIL - MÁS ANCHA -->
     <div
       v-if="isScanning"
@@ -637,6 +670,7 @@ const props = defineProps<Props>();
 
 const emit = defineEmits<{
   qrDetected: [ticket: Reservation];
+  attendanceUpdated: [reservationId: string, confirmed: boolean];
 }>();
 
 // Estado del escáner
@@ -657,6 +691,7 @@ const userData = ref<any>(null);
 const movieData = ref<any>(null);
 const asientoData = ref<any>(null);
 const salaData = ref<any>(null);
+const attendanceRegistered = ref(false); // Nuevo: Indicador de asistencia registrada
 
 // Referencias del DOM
 const videoElement = ref<HTMLVideoElement | null>(null);
@@ -1265,6 +1300,15 @@ const handleQRDetected = async (qrData: string) => {
         // Marcar este QR como procesado en esta sesión para evitar re-escaneos
         processedQRs.value.add(reservation.id);
         console.log("✅ Reserva marcada como confirmada para esta sesión");
+
+        // 🔥 NUEVO: Emitir evento para notificar al sistema de asistencia
+        emit("attendanceUpdated", reservation.id, true);
+        
+        // 🔥 NUEVO: Mostrar indicador de asistencia registrada
+        attendanceRegistered.value = true;
+        setTimeout(() => {
+          attendanceRegistered.value = false;
+        }, 5000); // Ocultar después de 5 segundos
       }
     } catch (error) {
       console.error("❌ Error crítico actualizando BD:", error);
@@ -1283,7 +1327,7 @@ const handleQRDetected = async (qrData: string) => {
         reservation.asiento_numero
       }\n🕐 ${new Date().toLocaleTimeString(
         "es-ES"
-      )}\n\n🎫 Disfruta la función`,
+      )}\n\n🎫 Disfruta la función\n📋 Asistencia registrada automáticamente`,
     });
 
     // Detener el escáner después de una detección exitosa
@@ -1323,6 +1367,7 @@ const clearLastScan = () => {
   asientoData.value = null;
   salaData.value = null;
   detectionSuccess.value = false;
+  attendanceRegistered.value = false; // Limpiar indicador de asistencia
   // NO limpiar processedQRs para mantener la sesión de QRs escaneados
 };
 

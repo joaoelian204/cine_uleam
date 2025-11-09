@@ -10,9 +10,27 @@
     
     <!-- Título del Admin -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
-      <div class="text-center">
-        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Panel de Administración</h1>
-        <p class="mt-2 text-base sm:text-lg text-gray-600">CineUleam - Sistema de Gestión</p>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div class="text-center sm:text-left">
+          <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Panel de Administración</h1>
+          <p class="mt-2 text-base sm:text-lg text-gray-600">CineUleam - Sistema de Gestión</p>
+        </div>
+        
+        <!-- 🔥 NUEVO: Botón de cerrar sesión mejorado -->
+        <div class="mt-4 sm:mt-0 flex items-center space-x-4">
+          <div class="text-sm text-gray-600">
+            <span class="font-medium">👤 {{ currentUser?.nombre || 'Admin' }}</span>
+          </div>
+          <button
+            @click="handleLogout"
+            class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors shadow-lg"
+          >
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+            </svg>
+            Cerrar Sesión
+          </button>
+        </div>
       </div>
     </div>
 
@@ -235,7 +253,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Toast from '../components/Toast.vue'
 import AdminDashboard from '../components/admin/AdminDashboard.vue'
@@ -250,7 +268,7 @@ import type { Pelicula } from '../interfaces/Pelicula'
 import type { Sala } from '../interfaces/Sala'
 
 const router = useRouter()
-const { isAuthenticated, currentUser, checkSession } = useAuth()
+const { isAuthenticated, currentUser, checkSession, clearSessionCheck, logout } = useAuth()
 const {
   // Estado
   peliculas,
@@ -286,6 +304,30 @@ const toastType = ref<'success' | 'error' | 'warning' | 'info'>('info')
 const activeTab = ref('dashboard')
 const showMobileMenu = ref(false)
 
+// 🔥 NUEVO: Estado de inactividad
+const inactivityTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+const INACTIVITY_TIMEOUT = 30 * 60 * 1000 // 30 minutos
+
+// 🔥 NUEVO: Función para resetear el timer de inactividad
+const resetInactivityTimer = () => {
+  if (inactivityTimer.value) {
+    clearTimeout(inactivityTimer.value)
+  }
+  
+  inactivityTimer.value = setTimeout(() => {
+    displayToast('Sesión Expirada', 'La sesión ha expirado por inactividad', 'warning')
+    handleLogout()
+  }, INACTIVITY_TIMEOUT)
+}
+
+// 🔥 NUEVO: Función para limpiar timer de inactividad
+const clearInactivityTimer = () => {
+  if (inactivityTimer.value) {
+    clearTimeout(inactivityTimer.value)
+    inactivityTimer.value = null
+  }
+}
+
 // Función helper para mostrar toast
 const displayToast = (title: string, message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
   toastTitle.value = title
@@ -311,6 +353,27 @@ const getActiveTabLabel = () => {
 const selectTab = (tab: string) => {
   activeTab.value = tab
   showMobileMenu.value = false
+}
+
+// 🔥 NUEVO: Función para cerrar sesión de forma segura
+const handleLogout = async () => {
+  try {
+    displayToast('Info', 'Cerrando sesión...', 'info')
+    
+    // Limpiar intervalos primero
+    clearSessionCheck()
+    
+    // Cerrar sesión
+    await logout()
+    
+    displayToast('Éxito', 'Sesión cerrada correctamente', 'success')
+  } catch (error: any) {
+    console.error('❌ Error al cerrar sesión:', error)
+    displayToast('Advertencia', 'Se cerró la sesión con algunos errores', 'warning')
+    
+    // Forzar redirección al login aunque haya errores
+    router.push('/login')
+  }
 }
 
 // Handlers para las operaciones CRUD de películas
@@ -390,5 +453,28 @@ onMounted(async () => {
   
   // Cargar datos iniciales
   await loadAllData()
+  
+  // 🔥 NUEVO: Configurar detección de inactividad
+  const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click']
+  
+  activityEvents.forEach(eventName => {
+    document.addEventListener(eventName, resetInactivityTimer, true)
+  })
+  
+  // Iniciar el timer de inactividad
+  resetInactivityTimer()
+})
+
+// 🔥 NUEVO: Limpiar intervalos y timers al desmontar el componente
+onUnmounted(() => {
+  console.log('🧹 Limpiando intervalos de sesión al salir del panel de administración')
+  clearSessionCheck()
+  clearInactivityTimer()
+  
+  // Limpiar event listeners de actividad
+  const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click']
+  activityEvents.forEach(eventName => {
+    document.removeEventListener(eventName, resetInactivityTimer, true)
+  })
 })
 </script>

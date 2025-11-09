@@ -7,6 +7,69 @@ const currentUser = ref<Usuario | null>(null);
 const isAuthenticated = computed(() => currentUser.value !== null);
 const isAdmin = computed(() => currentUser.value?.tipo === "admin");
 const isStudent = computed(() => currentUser.value?.tipo === "estudiante");
+const sessionCheckInterval = ref<ReturnType<typeof setInterval> | null>(null);
+
+// 🔥 NUEVO: Función para limpiar intervalos
+const clearSessionCheck = () => {
+  if (sessionCheckInterval.value) {
+    clearInterval(sessionCheckInterval.value);
+    sessionCheckInterval.value = null;
+  }
+};
+
+// 🔥 NUEVO: Función para verificar sesión periódicamente
+const startSessionCheck = () => {
+  clearSessionCheck(); // Limpiar cualquier intervalo anterior
+
+  // Verificar sesión cada 5 minutos
+  sessionCheckInterval.value = setInterval(async () => {
+    try {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      if (error || !session) {
+        console.warn("⚠️ Sesión expirada o inválida, cerrando sesión...");
+        await forceLogout();
+      } else {
+        // Refrescar token si está cerca de expirar
+        const expiresAt = session.expires_at;
+        const now = Math.floor(Date.now() / 1000);
+
+        if (expiresAt) {
+          const timeUntilExpiry = expiresAt - now;
+
+          // Si expira en menos de 10 minutos, refrescar
+          if (timeUntilExpiry < 600) {
+            const { error: refreshError } =
+              await supabase.auth.refreshSession();
+            if (refreshError) {
+              console.warn("⚠️ Error refrescando sesión:", refreshError);
+              await forceLogout();
+            } else {
+              console.log("✅ Sesión refrescada automáticamente");
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("❌ Error verificando sesión:", error);
+    }
+  }, 5 * 60 * 1000); // 5 minutos
+};
+
+// 🔥 NUEVO: Función para forzar logout sin hacer request a Supabase
+const forceLogout = async () => {
+  clearSessionCheck();
+  currentUser.value = null;
+  localStorage.removeItem("user");
+
+  // Redirigir al login
+  if (router.currentRoute.value.path !== "/login") {
+    router.push("/login");
+  }
+};
 
 export function useAuth() {
   const login = async (
@@ -33,6 +96,9 @@ export function useAuth() {
       currentUser.value = usuario;
       localStorage.setItem("user", JSON.stringify(usuario));
 
+      // 🔥 NUEVO: Iniciar verificación periódica de sesión
+      startSessionCheck();
+
       // Redirección automática según el tipo de usuario
       if (redirect) {
         if (usuario.tipo === "admin") {
@@ -47,9 +113,19 @@ export function useAuth() {
   };
 
   const logout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    try {
+      // 🔥 MEJORADO: Limpiar interval antes de logout
+      clearSessionCheck();
 
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.warn("⚠️ Error en signOut, pero forzando logout:", error);
+      }
+    } catch (error) {
+      console.warn("⚠️ Error durante logout, pero forzando limpieza:", error);
+    }
+
+    // Limpiar estado local siempre
     currentUser.value = null;
     localStorage.removeItem("user");
 
@@ -76,25 +152,49 @@ export function useAuth() {
   };
 
   const checkSession = async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-    if (session?.user) {
-      const { data: usuario } = await supabase
-        .from("usuario")
-        .select("*")
-        .eq("id", session.user.id)
-        .single();
+      if (session?.user) {
+        const { data: usuario } = await supabase
+          .from("usuario")
+          .select("*")
+          .eq("id", session.user.id)
+          .single();
 
-      if (usuario) {
-        currentUser.value = usuario;
+        if (usuario) {
+          currentUser.value = usuario;
+          // 🔥 NUEVO: Iniciar verificación periódica si hay sesión activa
+          startSessionCheck();
+          return;
+        }
       }
-    } else {
+
+      // Si no hay sesión válida, intentar desde localStorage
       const savedUser = localStorage.getItem("user");
       if (savedUser) {
-        currentUser.value = JSON.parse(savedUser);
+        try {
+          currentUser.value = JSON.parse(savedUser);
+          // Verificar que la sesión local aún sea válida
+          const {
+            data: { session: currentSession },
+          } = await supabase.auth.getSession();
+          if (currentSession?.user) {
+            startSessionCheck();
+          } else {
+            // Sesión inválida, limpiar
+            await forceLogout();
+          }
+        } catch (parseError) {
+          // localStorage corrupto, limpiar
+          localStorage.removeItem("user");
+        }
       }
+    } catch (error) {
+      console.error("❌ Error verificando sesión:", error);
+      await forceLogout();
     }
   };
 
@@ -175,5 +275,9 @@ export function useAuth() {
     updatePassword,
     getRedirectPath,
     redirectToUserDashboard,
+    // 🔥 NUEVO: Exponer funciones de manejo de sesión
+    clearSessionCheck,
+    forceLogout,
+    startSessionCheck,
   };
 }

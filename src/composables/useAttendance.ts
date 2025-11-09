@@ -355,6 +355,40 @@ Hora: ${new Date().toLocaleTimeString()}`);
     selectedQRReservation.value = null;
   };
 
+  // Actualizar una reserva específica en la lista local
+  const updateReservationInList = (
+    reservationId: string,
+    updates: Partial<Reservation>
+  ) => {
+    const reservationIndex = reservations.value.findIndex(
+      (r) => r.id === reservationId
+    );
+    if (reservationIndex !== -1 && reservations.value[reservationIndex]) {
+      // Crear objeto actualizado manteniendo los valores existentes
+      const currentReservation = reservations.value[reservationIndex];
+      reservations.value[reservationIndex] = {
+        id: currentReservation.id,
+        usuario_id: currentReservation.usuario_id,
+        usuario_nombre: currentReservation.usuario_nombre,
+        usuario_email: currentReservation.usuario_email,
+        pelicula_id: currentReservation.pelicula_id,
+        pelicula_nombre: currentReservation.pelicula_nombre,
+        asiento_id: currentReservation.asiento_id,
+        asiento_fila: currentReservation.asiento_fila,
+        asiento_numero: currentReservation.asiento_numero,
+        sala_nombre: currentReservation.sala_nombre,
+        fecha_reserva: currentReservation.fecha_reserva,
+        fecha_proyeccion: currentReservation.fecha_proyeccion,
+        qr_code: currentReservation.qr_code,
+        // Aplicar las actualizaciones, especialmente asistencia_confirmada
+        asistencia_confirmada:
+          updates.asistencia_confirmada ??
+          currentReservation.asistencia_confirmada,
+      };
+      console.log(`✅ Reserva ${reservationId} actualizada en la lista local`);
+    }
+  };
+
   // Actualizar filtros
   const updateFilter = (key: keyof AttendanceFilters, value: string) => {
     filters.value[key] = value;
@@ -388,5 +422,6 @@ Hora: ${new Date().toLocaleTimeString()}`);
     showQRCode,
     closeQRModal,
     updateFilter,
+    updateReservationInList,
   };
 };
