@@ -1,7 +1,10 @@
 import { supabase } from "../lib/supabase";
 import { generateQRString, type ReservationData } from "../utils/qrGenerator";
+import { useEmailService } from "./useEmailService"; // 🔥 NUEVO: Importar servicio de email
 
 export const useReservations = () => {
+  // 🔥 NUEVO: Inicializar servicio de email
+  const { sendValidatedTicketEmail } = useEmailService();
   // Función para verificar reserva existente con manejo específico de errores
   const checkExistingReservation = async (
     userId: string,
@@ -274,6 +277,52 @@ export const useReservations = () => {
         } else {
           console.log("✅ QR generado y guardado exitosamente");
           data.qr_code = qrString; // Agregar el QR a los datos devueltos
+        }
+
+        // 🔥 NUEVO: Enviar email de confirmación automáticamente
+        try {
+          console.log("📧 Iniciando envío de email de confirmación...");
+
+          const emailData = {
+            userEmail: fullReservationData.usuario_email,
+            userName: fullReservationData.usuario_nombre,
+            movieName: fullReservationData.pelicula_nombre,
+            seatRow: fullReservationData.asiento_fila,
+            seatNumber: fullReservationData.asiento_numero,
+            dateTime: fullReservationData.fecha_proyeccion,
+            reservationId: data.id,
+            salaName: fullReservationData.sala_nombre,
+          };
+
+          console.log("📧 Datos del email:", {
+            destinatario: emailData.userEmail,
+            pelicula: emailData.movieName,
+            asiento: `${emailData.seatRow}${emailData.seatNumber}`,
+            fecha: emailData.dateTime,
+          });
+
+          const emailResult = await sendValidatedTicketEmail(emailData);
+
+          if (emailResult.success) {
+            console.log("✅ Email de ticket enviado exitosamente");
+            // Opcional: Agregar flag al data de retorno para indicar que el email fue enviado
+            (data as any).emailSent = true;
+            (data as any).emailMessage = "Ticket enviado por email";
+          } else {
+            console.warn(
+              "⚠️ Error enviando email, pero reserva creada exitosamente:",
+              emailResult.message
+            );
+            (data as any).emailSent = false;
+            (data as any).emailMessage = emailResult.message;
+            (data as any).emailError = emailResult.error;
+          }
+        } catch (emailError) {
+          console.error("❌ Error crítico enviando email:", emailError);
+          // No fallar la reserva por problemas de email
+          (data as any).emailSent = false;
+          (data as any).emailMessage = "Error crítico enviando email";
+          (data as any).emailError = emailError;
         }
       }
 
