@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { generateQRString, type ReservationData } from "../utils/qrGenerator";
 
 export const useReservations = () => {
   // Función para verificar reserva existente con manejo específico de errores
@@ -99,6 +100,72 @@ export const useReservations = () => {
     }
   };
 
+  // Función para obtener datos completos de una reserva para generar QR
+  const getReservationDetailsForQR = async (
+    reservaId: string
+  ): Promise<ReservationData | null> => {
+    try {
+      const { data, error } = await supabase
+        .from("reserva")
+        .select(
+          `
+          id,
+          usuario:usuario_id (
+            id,
+            nombre,
+            correo_institucional
+          ),
+          pelicula:pelicula_id (
+            id,
+            nombre,
+            idioma,
+            fecha_hora_proyeccion,
+            sala:sala_id (
+              nombre
+            )
+          ),
+          asiento:asiento_id (
+            id,
+            fila,
+            numero
+          )
+        `
+        )
+        .eq("id", reservaId)
+        .single();
+
+      if (error || !data) {
+        console.error("❌ Error obteniendo datos para QR:", error);
+        return null;
+      }
+
+      // Transformar los datos al formato requerido para el QR
+      const usuario = (data as any).usuario;
+      const pelicula = (data as any).pelicula;
+      const asiento = (data as any).asiento;
+
+      const reservationData: ReservationData = {
+        id: data.id,
+        usuario_id: usuario?.id || "",
+        usuario_nombre: usuario?.nombre || "",
+        usuario_email: usuario?.correo_institucional || "",
+        pelicula_id: pelicula?.id || "",
+        pelicula_nombre: pelicula?.nombre || "",
+        pelicula_idioma: pelicula?.idioma || "Español",
+        asiento_id: asiento?.id || "",
+        asiento_fila: asiento?.fila || "",
+        asiento_numero: asiento?.numero || 0,
+        sala_nombre: pelicula?.sala?.nombre || "",
+        fecha_proyeccion: pelicula?.fecha_hora_proyeccion || "",
+      };
+
+      return reservationData;
+    } catch (error) {
+      console.error("❌ Error en getReservationDetailsForQR:", error);
+      return null;
+    }
+  };
+
   // Función para crear nueva reserva
   const createReservation = async (reservaData: {
     usuario_id: string;
@@ -187,6 +254,29 @@ export const useReservations = () => {
       }
 
       console.log("✅ Reserva creada exitosamente:", data);
+
+      // Obtener información completa para generar el QR
+      const fullReservationData = await getReservationDetailsForQR(data.id);
+
+      if (fullReservationData) {
+        // Generar el QR string
+        const qrString = generateQRString(fullReservationData);
+
+        // Actualizar la reserva con el QR generado
+        const { error: updateError } = await supabase
+          .from("reserva")
+          .update({ qr_code: qrString })
+          .eq("id", data.id);
+
+        if (updateError) {
+          console.error("❌ Error actualizando QR:", updateError);
+          // No fallar si el QR no se puede guardar, la reserva ya está creada
+        } else {
+          console.log("✅ QR generado y guardado exitosamente");
+          data.qr_code = qrString; // Agregar el QR a los datos devueltos
+        }
+      }
+
       return data;
     } catch (error: any) {
       console.error("❌ Error en createReservation:", error);
@@ -235,9 +325,11 @@ export const useReservations = () => {
 
       const { data, error } = await supabase
         .from("reserva")
-        .select(`
+        .select(
+          `
           id,
           fecha_creacion,
+          qr_code,
           pelicula:pelicula_id (
             id,
             nombre,
@@ -255,7 +347,8 @@ export const useReservations = () => {
             fila,
             numero
           )
-        `)
+        `
+        )
         .eq("usuario_id", userId)
         .order("fecha_creacion", { ascending: false });
 

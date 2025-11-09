@@ -120,7 +120,7 @@
                 v-if="movie.url_poster" 
                 :src="movie.url_poster" 
                 :alt="movie.nombre"
-                class="h-16 w-12 sm:h-20 sm:w-15 object-cover rounded flex-shrink-0"
+                class="h-16 w-12 sm:h-20 sm:w-15 object-cover rounded shrink-0"
               >
               <div class="min-w-0 flex-1">
                 <div class="text-sm sm:text-base font-medium text-gray-900 truncate">{{ movie.nombre }}</div>
@@ -131,7 +131,7 @@
                 </div>
               </div>
             </div>
-            <div class="flex flex-row sm:flex-col lg:flex-row gap-2 flex-shrink-0">
+            <div class="flex flex-row sm:flex-col lg:flex-row gap-2 shrink-0">
               <button 
                 @click="editMovie(movie)"
                 class="flex-1 sm:flex-none text-blue-600 hover:text-blue-900 text-sm font-medium px-3 py-1 rounded border border-blue-200 hover:bg-blue-50"
@@ -169,10 +169,10 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import ImageUpload from '../ImageUpload.vue'
 import { useAdmin } from '../../composables/useAdmin'
 import type { Pelicula } from '../../interfaces/Pelicula'
 import type { Sala } from '../../interfaces/Sala'
+import ImageUpload from '../ImageUpload.vue'
 
 interface Props {
   peliculas: Pelicula[]
@@ -190,14 +190,11 @@ interface Emits {
 defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-// Usar las funciones del composable
 const { formatDateForDisplay, formatDateForInput, getSalaName } = useAdmin()
 
-// Estado del componente
 const showCreateForm = ref(false)
 const editingMovie = ref<Pelicula | null>(null)
 
-// Formulario de película
 const movieForm = ref<Partial<Pelicula>>({
   nombre: '',
   descripcion: '',
@@ -207,7 +204,6 @@ const movieForm = ref<Partial<Pelicula>>({
   sala_id: ''
 })
 
-// Métodos
 const formatDate = (dateString: string) => {
   return formatDateForDisplay(dateString)
 }
@@ -216,7 +212,6 @@ const editMovie = (movie: Pelicula) => {
   editingMovie.value = movie
   movieForm.value = { 
     ...movie,
-    // Formatear la fecha correctamente para el input datetime-local
     fecha_hora_proyeccion: formatDateForInput(movie.fecha_hora_proyeccion)
   }
   showCreateForm.value = false
@@ -236,10 +231,8 @@ const cancelForm = () => {
 }
 
 const submitMovie = () => {
-  // Preparar los datos del formulario
   const movieData = {
     ...movieForm.value,
-    // Asegurar que la fecha esté en formato ISO
     fecha_hora_proyeccion: movieForm.value.fecha_hora_proyeccion 
       ? new Date(movieForm.value.fecha_hora_proyeccion).toISOString()
       : ''
@@ -259,15 +252,12 @@ const deleteMovie = (id: string) => {
   }
 }
 
-// Handlers para el upload de imágenes
 const handlePosterUpload = (url: string) => {
-  console.log('✅ Póster subido exitosamente:', url)
   movieForm.value.url_poster = url
   emit('show-toast', 'Éxito', 'Imagen subida correctamente', 'success')
 }
 
 const handlePosterError = (error: string) => {
-  console.error('❌ Error al subir póster:', error)
   emit('show-toast', 'Error', error, 'error')
 }
 </script>

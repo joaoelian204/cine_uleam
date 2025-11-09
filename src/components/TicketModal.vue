@@ -7,8 +7,8 @@
     >
       <div
         ref="ticketRef"
-        class="bg-white/95 backdrop-blur-lg rounded-xl shadow-2xl max-w-72 w-full overflow-hidden transform transition-all border border-white/20"
-        style="font-family: 'Inter', 'Segoe UI', sans-serif; backdrop-filter: blur(20px); max-height: 80vh; overflow-y: auto;"
+        class="bg-white/95 backdrop-blur-lg rounded-xl shadow-2xl max-w-80 w-full overflow-hidden transform transition-all border border-white/20"
+        style="font-family: 'Inter', 'Segoe UI', sans-serif; backdrop-filter: blur(20px); max-height: 85vh; overflow-y: auto;"
         @click.stop
       >
         <!-- Header ultra compacto -->
@@ -44,101 +44,106 @@
           </div>
         </div>
 
-        <!-- Ticket Content ultra compacto -->
-        <div class="p-2 space-y-2 bg-white/80 backdrop-blur-sm">
-          <!-- Movie Info mini -->
-          <div class="bg-linear-to-r from-gray-900 to-gray-700 rounded-md p-2 text-white">
-            <h3 class="text-xs font-bold mb-1 leading-tight">
+        <!-- Ticket Content mejorado -->
+        <div class="p-3 space-y-3 bg-white/85 backdrop-blur-sm">
+          <!-- Movie Info mejorada -->
+          <div class="bg-linear-to-r from-gray-900 to-gray-700 rounded-lg p-3 text-white shadow-lg">
+            <h3 class="text-sm font-bold mb-2 leading-tight text-center">
               {{ ticketData.movieName }}
             </h3>
-            <div class="flex items-center gap-1">
-              <span class="bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5 text-xs">
+            <div class="flex items-center justify-center gap-2">
+              <span class="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-medium">
                 {{ ticketData.movieLanguage }}
               </span>
             </div>
           </div>
 
-          <!-- Details Grid mini -->
-          <div class="grid grid-cols-2 gap-1">
+          <!-- Details Grid mejorado -->
+          <div class="grid grid-cols-2 gap-2">
             <!-- Fecha -->
-            <div class="bg-white/90 rounded p-1.5 border border-blue-100 text-center">
-              <p class="text-xs text-blue-600 font-semibold">📅 FECHA</p>
-              <p class="font-bold text-gray-800 text-xs">
+            <div class="bg-white/95 rounded-lg p-2 border border-blue-200 text-center shadow-sm">
+              <p class="text-xs text-blue-600 font-bold mb-1">📅 FECHA</p>
+              <p class="font-bold text-gray-800 text-xs leading-tight">
                 {{ formatDate(ticketData.dateTime) }}
               </p>
             </div>
             
             <!-- Hora -->
-            <div class="bg-white/90 rounded p-1.5 border border-green-100 text-center">
-              <p class="text-xs text-green-600 font-semibold">🕐 HORA</p>
-              <p class="font-bold text-gray-800 text-xs">
+            <div class="bg-white/95 rounded-lg p-2 border border-green-200 text-center shadow-sm">
+              <p class="text-xs text-green-600 font-bold mb-1">🕐 HORA</p>
+              <p class="font-bold text-gray-800 text-sm">
                 {{ formatTime(ticketData.dateTime) }}
               </p>
             </div>
 
             <!-- Sala -->
-            <div class="bg-white/90 rounded p-1.5 border border-purple-100 text-center">
-              <p class="text-xs text-purple-600 font-semibold">🏢 SALA</p>
-              <p class="font-bold text-gray-800 text-xs">
+            <div class="bg-white/95 rounded-lg p-2 border border-purple-200 text-center shadow-sm">
+              <p class="text-xs text-purple-600 font-bold mb-1">🏢 SALA</p>
+              <p class="font-bold text-gray-800 text-sm">
                 {{ ticketData.salaName }}
               </p>
             </div>
 
             <!-- Asiento -->
-            <div class="bg-white/90 rounded p-1.5 border border-red-100 text-center">
-              <p class="text-xs text-red-600 font-semibold">💺 ASIENTO</p>
-              <p class="font-bold text-gray-800 text-sm">
+            <div class="bg-white/95 rounded-lg p-2 border border-red-200 text-center shadow-sm">
+              <p class="text-xs text-red-600 font-bold mb-1">💺 ASIENTO</p>
+              <p class="font-bold text-gray-800 text-lg">
                 {{ ticketData.seatRow }}{{ ticketData.seatNumber }}
               </p>
             </div>
           </div>
 
-          <!-- Usuario mini -->
-          <div class="bg-linear-to-r from-gray-900 to-gray-800 rounded p-1.5 text-white">
-            <p class="text-xs font-semibold text-white/90 mb-1">👤 {{ ticketData.userName }}</p>
-            <p class="text-xs text-white/70">{{ ticketData.userEmail }}</p>
+          <!-- Usuario mejorado -->
+          <div class="bg-linear-to-r from-gray-900 to-gray-800 rounded-lg p-3 text-white shadow-lg">
+            <p class="text-sm font-bold text-white mb-1">👤 {{ ticketData.userName }}</p>
+            <p class="text-xs text-white/80">{{ ticketData.userEmail }}</p>
           </div>
 
-          <!-- QR Code mini -->
-          <div class="text-center">
-            <p class="text-xs font-semibold text-gray-700 mb-1">CÓDIGO QR</p>
-            <div class="flex justify-center">
-              <div class="bg-white/90 p-1.5 rounded border border-gray-200">
-                <canvas ref="qrCanvas" class="w-12 h-12"></canvas>
+          <!-- QR Code mejorado y más grande -->
+          <div class="text-center bg-white/95 rounded-lg p-3 border-2 border-gray-100">
+            <p class="text-sm font-bold text-gray-800 mb-2 tracking-wide">📱 CÓDIGO QR</p>
+            <div class="flex justify-center bg-white rounded-lg p-4 shadow-inner">
+              <div class="bg-white p-3 rounded-lg border-2 border-gray-200 shadow-sm">
+                <canvas ref="qrCanvas" class="w-24 h-24"></canvas>
               </div>
             </div>
+            <p class="text-xs text-gray-500 mt-2 font-medium">Escanea en la entrada</p>
           </div>
 
-          <!-- ID Reserva mini -->
-          <div class="text-center bg-gray-100/80 rounded p-1.5">
-            <p class="text-xs text-gray-600 mb-1 font-semibold">ID RESERVA</p>
-            <p class="font-mono text-xs text-gray-800 bg-white/90 py-1 px-2 rounded">
+          <!-- ID Reserva mejorado -->
+          <div class="text-center bg-gray-50/90 rounded-lg p-2 border border-gray-200">
+            <p class="text-xs text-gray-600 mb-1 font-bold">🔖 ID RESERVA</p>
+            <p class="font-mono text-sm text-gray-800 bg-white/90 py-1 px-3 rounded-md border">
               {{ ticketData.reservationId.substring(0, 8) }}
             </p>
           </div>
         </div>
 
-        <!-- Footer Actions compacto con fondo semi-transparente -->
-        <div class="bg-gray-50/80 backdrop-blur-sm p-3 space-y-2 border-t border-[#C1272D]/20">
-          <!-- Instrucciones importantes compactas -->
-          <div class="bg-yellow-50/80 border-l-2 border-yellow-400 p-2 rounded-r-md">
-            <div class="flex items-start gap-2">
-              <svg class="w-3 h-3 text-yellow-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 15.5c-.77.833.192 2.5 1.732 2.5z" />
+        <!-- Footer Actions mejorado -->
+        <div class="bg-gray-50/90 backdrop-blur-sm p-4 space-y-3 border-t border-[#C1272D]/20">
+          <!-- Instrucciones importantes mejoradas -->
+          <div class="bg-blue-50/90 border-l-4 border-blue-400 p-3 rounded-r-lg">
+            <div class="flex items-start gap-3">
+              <svg class="w-5 h-5 text-blue-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <div class="text-yellow-800">
-                <p class="text-xs font-semibold">Importante:</p>
-                <p class="text-xs">Presenta este email o código QR en la entrada</p>
+              <div class="text-blue-800">
+                <p class="text-sm font-bold mb-1">📱 Instrucciones de Uso:</p>
+                <ul class="text-xs space-y-1">
+                  <li>• Presenta este código QR en la entrada</li>
+                  <li>• Descarga el PDF como respaldo</li>
+                  <li>• Llega 30 minutos antes de la función</li>
+                </ul>
               </div>
             </div>
           </div>
           
           <button
             @click="downloadTicket"
-            class="w-full bg-[#C1272D] hover:bg-[#8B1F23] text-white font-bold py-2 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 text-xs shadow-md"
+            class="w-full bg-[#C1272D] hover:bg-[#8B1F23] text-white font-bold py-3 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 text-sm shadow-md"
           >
             <svg
-              class="w-4 h-4"
+              class="w-5 h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -150,13 +155,17 @@
                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
               />
             </svg>
-            Descargar PDF
+            📄 Descargar Ticket PDF
           </button>
           
-          
-          <p class="text-xs text-gray-500 text-center">
-            Válido 30 min antes de la función
-          </p>
+          <div class="bg-green-50 rounded-lg p-2 text-center">
+            <p class="text-xs text-green-700 font-medium">
+              ✅ Tu reserva está confirmada
+            </p>
+            <p class="text-xs text-green-600">
+              Válido hasta 30 min después del inicio
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -169,6 +178,7 @@ import { nextTick, onMounted, ref, watch } from "vue";
 import { useNotifications } from "../composables/useNotifications";
 import { usePDFTicket, type TicketPDFData } from "../composables/usePDFTicket";
 import { useSupabaseHelpers } from "../composables/useSupabaseHelpers";
+import { generateQRString, type ReservationData } from "../utils/qrGenerator";
 
 const { sendEmailWithRetry } = useSupabaseHelpers();
 const { showSuccess, handleEmailError } = useNotifications();
@@ -221,23 +231,33 @@ const formatTime = (dateString: string) => {
 const generateQR = async () => {
   if (!qrCanvas.value) return;
 
-  const qrData = JSON.stringify({
-    reservationId: props.ticketData.reservationId,
-    movieName: props.ticketData.movieName,
-    dateTime: props.ticketData.dateTime,
-    seat: `${props.ticketData.seatRow}${props.ticketData.seatNumber}`,
-    sala: props.ticketData.salaName,
-    userEmail: props.ticketData.userEmail,
-  });
+  // Crear datos estandarizados del QR usando el nuevo formato
+  const reservationData: ReservationData = {
+    id: props.ticketData.reservationId,
+    usuario_id: '', // Este valor debería venir del ticket, temporalmente vacío
+    usuario_nombre: props.ticketData.userName,
+    usuario_email: props.ticketData.userEmail,
+    pelicula_id: '', // Este valor debería venir del ticket, temporalmente vacío
+    pelicula_nombre: props.ticketData.movieName,
+    pelicula_idioma: props.ticketData.movieLanguage,
+    asiento_id: '', // Este valor debería venir del ticket, temporalmente vacío
+    asiento_fila: props.ticketData.seatRow,
+    asiento_numero: props.ticketData.seatNumber,
+    sala_nombre: props.ticketData.salaName,
+    fecha_proyeccion: props.ticketData.dateTime,
+  };
+
+  const qrData = generateQRString(reservationData);
 
   try {
     await QRCode.toCanvas(qrCanvas.value, qrData, {
-      width: 64, // Reducido de 96 a 64
-      margin: 1,
+      width: 96, // Aumentado de 64 a 96 para mejor legibilidad
+      margin: 2, // Aumentado margen para mejor contraste
       color: {
-        dark: "#1F2937",
+        dark: "#1F2937", // Color oscuro más definido
         light: "#FFFFFF",
       },
+      errorCorrectionLevel: 'M', // Nivel de corrección de errores medio para mejor lectura
     });
   } catch (error) {
     console.error("Error generando QR:", error);
