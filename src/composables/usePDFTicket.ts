@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
+import { generateQRString, type ReservationData } from "../utils/qrGenerator";
 
 export interface TicketPDFData {
   reservationId: string;
@@ -175,31 +176,63 @@ export const usePDFTicket = () => {
 
       currentY += 35;
 
-      // Código QR
-      const qrData = JSON.stringify({
+      // Código QR con formato estandarizado
+      const reservationData: ReservationData = {
         id: ticketData.reservationId,
-        movie: ticketData.movieName,
-        seat: `${ticketData.seatRow}${ticketData.seatNumber}`,
-        date: ticketData.dateTime,
-        user: ticketData.userEmail,
-      });
+        usuario_id: "", // Temporal
+        usuario_nombre: ticketData.userName,
+        usuario_email: ticketData.userEmail,
+        pelicula_id: "", // Temporal
+        pelicula_nombre: ticketData.movieName,
+        pelicula_idioma: ticketData.movieLanguage,
+        asiento_id: "", // Temporal
+        asiento_fila: ticketData.seatRow,
+        asiento_numero: ticketData.seatNumber,
+        sala_nombre: ticketData.salaName,
+        fecha_proyeccion: ticketData.dateTime,
+      };
+
+      const qrData = generateQRString(reservationData);
 
       const qrCodeDataURL = await QRCode.toDataURL(qrData, {
-        width: 200,
-        margin: 2,
+        width: 280, // Aumentado para mejor calidad de impresión
+        margin: 3, // Aumentado margen para mejor contraste
         color: {
           dark: "#000000",
           light: "#FFFFFF",
         },
-        errorCorrectionLevel: "M",
+        errorCorrectionLevel: "M", // Nivel medio de corrección de errores
       });
 
-      // Agregar QR al PDF
-      const qrSize = 40;
+      // Agregar QR al PDF con tamaño más grande y mejor posicionamiento
+      const qrSize = 50; // Aumentado de 40 a 50 para mejor legibilidad
       const qrX = startX + (ticketWidth - qrSize) / 2;
+
+      // Fondo blanco para el QR para mejor contraste
+      pdf.setFillColor(255, 255, 255);
+      pdf.roundedRect(qrX - 3, currentY - 3, qrSize + 6, qrSize + 6, 3, 3, "F");
+
+      // Borde sutil alrededor del QR
+      pdf.setDrawColor(200, 200, 200);
+      pdf.setLineWidth(0.5);
+      pdf.roundedRect(qrX - 3, currentY - 3, qrSize + 6, qrSize + 6, 3, 3, "S");
+
       pdf.addImage(qrCodeDataURL, "PNG", qrX, currentY, qrSize, qrSize);
 
-      currentY += 50;
+      // Etiqueta del QR
+      pdf.setTextColor(...darkGray);
+      pdf.setFontSize(8);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(
+        "CÓDIGO QR - ESCANEAR EN LA ENTRADA",
+        startX + ticketWidth / 2,
+        currentY - 8,
+        {
+          align: "center",
+        }
+      );
+
+      currentY += 60;
 
       // ID de reserva
       pdf.setFillColor(240, 240, 240);

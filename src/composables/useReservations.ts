@@ -1,6 +1,10 @@
 import { supabase } from "../lib/supabase";
+import { generateQRString, type ReservationData } from "../utils/qrGenerator";
+import { useEmailService } from "./useEmailService"; // 🔥 NUEVO: Importar servicio de email
 
 export const useReservations = () => {
+  // 🔥 NUEVO: Inicializar servicio de email
+  const { sendValidatedTicketEmail } = useEmailService();
   // Función para verificar reserva existente con manejo específico de errores
   const checkExistingReservation = async (
     userId: string,
@@ -99,6 +103,72 @@ export const useReservations = () => {
     }
   };
 
+  // Función para obtener datos completos de una reserva para generar QR
+  const getReservationDetailsForQR = async (
+    reservaId: string
+  ): Promise<ReservationData | null> => {
+    try {
+      const { data, error } = await supabase
+        .from("reserva")
+        .select(
+          `
+          id,
+          usuario:usuario_id (
+            id,
+            nombre,
+            correo_institucional
+          ),
+          pelicula:pelicula_id (
+            id,
+            nombre,
+            idioma,
+            fecha_hora_proyeccion,
+            sala:sala_id (
+              nombre
+            )
+          ),
+          asiento:asiento_id (
+            id,
+            fila,
+            numero
+          )
+        `
+        )
+        .eq("id", reservaId)
+        .single();
+
+      if (error || !data) {
+        console.error("❌ Error obteniendo datos para QR:", error);
+        return null;
+      }
+
+      // Transformar los datos al formato requerido para el QR
+      const usuario = (data as any).usuario;
+      const pelicula = (data as any).pelicula;
+      const asiento = (data as any).asiento;
+
+      const reservationData: ReservationData = {
+        id: data.id,
+        usuario_id: usuario?.id || "",
+        usuario_nombre: usuario?.nombre || "",
+        usuario_email: usuario?.correo_institucional || "",
+        pelicula_id: pelicula?.id || "",
+        pelicula_nombre: pelicula?.nombre || "",
+        pelicula_idioma: pelicula?.idioma || "Español",
+        asiento_id: asiento?.id || "",
+        asiento_fila: asiento?.fila || "",
+        asiento_numero: asiento?.numero || 0,
+        sala_nombre: pelicula?.sala?.nombre || "",
+        fecha_proyeccion: pelicula?.fecha_hora_proyeccion || "",
+      };
+
+      return reservationData;
+    } catch (error) {
+      console.error("❌ Error en getReservationDetailsForQR:", error);
+      return null;
+    }
+  };
+
   // Función para crear nueva reserva
   const createReservation = async (reservaData: {
     usuario_id: string;
@@ -187,6 +257,75 @@ export const useReservations = () => {
       }
 
       console.log("✅ Reserva creada exitosamente:", data);
+
+      // Obtener información completa para generar el QR
+      const fullReservationData = await getReservationDetailsForQR(data.id);
+
+      if (fullReservationData) {
+        // Generar el QR string
+        const qrString = generateQRString(fullReservationData);
+
+        // Actualizar la reserva con el QR generado
+        const { error: updateError } = await supabase
+          .from("reserva")
+          .update({ qr_code: qrString })
+          .eq("id", data.id);
+
+        if (updateError) {
+          console.error("❌ Error actualizando QR:", updateError);
+          // No fallar si el QR no se puede guardar, la reserva ya está creada
+        } else {
+          console.log("✅ QR generado y guardado exitosamente");
+          data.qr_code = qrString; // Agregar el QR a los datos devueltos
+        }
+
+        // 🔥 NUEVO: Enviar email de confirmación automáticamente
+        try {
+          console.log("📧 Iniciando envío de email de confirmación...");
+
+          const emailData = {
+            userEmail: fullReservationData.usuario_email,
+            userName: fullReservationData.usuario_nombre,
+            movieName: fullReservationData.pelicula_nombre,
+            seatRow: fullReservationData.asiento_fila,
+            seatNumber: fullReservationData.asiento_numero,
+            dateTime: fullReservationData.fecha_proyeccion,
+            reservationId: data.id,
+            salaName: fullReservationData.sala_nombre,
+          };
+
+          console.log("📧 Datos del email:", {
+            destinatario: emailData.userEmail,
+            pelicula: emailData.movieName,
+            asiento: `${emailData.seatRow}${emailData.seatNumber}`,
+            fecha: emailData.dateTime,
+          });
+
+          const emailResult = await sendValidatedTicketEmail(emailData);
+
+          if (emailResult.success) {
+            console.log("✅ Email de ticket enviado exitosamente");
+            // Opcional: Agregar flag al data de retorno para indicar que el email fue enviado
+            (data as any).emailSent = true;
+            (data as any).emailMessage = "Ticket enviado por email";
+          } else {
+            console.warn(
+              "⚠️ Error enviando email, pero reserva creada exitosamente:",
+              emailResult.message
+            );
+            (data as any).emailSent = false;
+            (data as any).emailMessage = emailResult.message;
+            (data as any).emailError = emailResult.error;
+          }
+        } catch (emailError) {
+          console.error("❌ Error crítico enviando email:", emailError);
+          // No fallar la reserva por problemas de email
+          (data as any).emailSent = false;
+          (data as any).emailMessage = "Error crítico enviando email";
+          (data as any).emailError = emailError;
+        }
+      }
+
       return data;
     } catch (error: any) {
       console.error("❌ Error en createReservation:", error);
@@ -235,9 +374,11 @@ export const useReservations = () => {
 
       const { data, error } = await supabase
         .from("reserva")
-        .select(`
+        .select(
+          `
           id,
           fecha_creacion,
+          qr_code,
           pelicula:pelicula_id (
             id,
             nombre,
@@ -255,7 +396,8 @@ export const useReservations = () => {
             fila,
             numero
           )
-        `)
+        `
+        )
         .eq("usuario_id", userId)
         .order("fecha_creacion", { ascending: false });
 

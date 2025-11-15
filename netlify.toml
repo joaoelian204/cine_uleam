@@ -1,0 +1,166 @@
+# Configuración de Netlify para CineUleam
+# Proyecto Vue 3 + Vite + TypeScript + Supabase
+
+[build]
+  # Comando para construir el proyecto con script robusto
+  command = "chmod +x build.sh && ./build.sh"
+  
+  # Directorio donde Vite genera los archivos de producción
+  publish = "dist"
+  
+  # Ignorar archivos que no afectan el build
+  ignore = "git diff --quiet HEAD^ HEAD README.md docs/ *.md"
+
+# Variables de entorno para el build
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_VERSION = "10"
+  # Deshabilitar la instalación automática de dependencias de Netlify
+  NETLIFY_SKIP_AUTOMATIC_DEPENDENCY_INSTALL = "true"
+  # Configuraciones para mejorar la estabilidad de npm
+  NPM_CONFIG_REGISTRY = "https://registry.npmjs.org/"
+  NPM_CONFIG_FETCH_TIMEOUT = "600000"
+  NPM_CONFIG_FETCH_RETRIES = "10"
+  NPM_CONFIG_FETCH_RETRY_FACTOR = "20"
+  NPM_CONFIG_FETCH_RETRY_MINTIMEOUT = "20000"
+  NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT = "120000"
+  # Configuraciones adicionales de red
+  NPM_CONFIG_MAXSOCKETS = "15"
+  NPM_CONFIG_NETWORK_CONCURRENCY = "1"
+  # Aumentar memoria para el build de Vue/Vite
+  NODE_OPTIONS = "--max-old-space-size=4096"
+
+# Redirecciones para SPA (Single Page Application)
+# Esto asegura que todas las rutas de Vue Router funcionen correctamente
+[[redirects]]
+  from = "/admin/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/login"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/registro" 
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/reset-password"
+  to = "/index.html"
+  status = 200
+  force = false
+
+# Redirección especial para reset password con parámetros
+[[redirects]]
+  from = "/reset-password/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+# Manejar URLs con fragments y query parameters de Supabase Auth
+[[redirects]]
+  from = "/reset-password?*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/movie/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/reserve/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/alquiler-sala"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/mis-tickets"
+  to = "/index.html"
+  status = 200
+  force = false
+
+# Redirección para la API de Supabase
+[[redirects]]
+  from = "/api/*"
+  to = "https://kdkblwmwlnpibaysggib.supabase.co/rest/v1/:splat"
+  status = 200
+  force = true
+  headers = {X-From = "Netlify"}
+
+# Redirección catch-all para Vue Router (DEBE estar al final)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+# Headers de seguridad y caché
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Seguridad básica
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+    # Content Security Policy adaptado para CineUleam
+    # Permite Supabase, Perplexity API y recursos locales
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://kdkblwmwlnpibaysggib.supabase.co;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      img-src 'self' data: https: blob:;
+      font-src 'self' https://fonts.gstatic.com;
+      connect-src 'self' https://kdkblwmwlnpibaysggib.supabase.co https://api.perplexity.ai wss://kdkblwmwlnpibaysggib.supabase.co;
+      media-src 'self' blob:;
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self';
+    """
+
+# Caché para assets estáticos (CSS, JS, imágenes)
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Caché para imágenes en la raíz (carpeta public)
+[[headers]]
+  for = "/*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Type = "image/jpeg"
+
+[[headers]]
+  for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Type = "image/png"
+
+[[headers]]
+  for = "/*.svg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Type = "image/svg+xml"
+
+# Sin caché para index.html
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

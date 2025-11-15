@@ -1,0 +1,143 @@
+            <!-- Header elegante como TicketModal -->
+            <div
+              class="bg-linear-to-r from-[#C1272D] via-[#DC2626] to-[#8B1F23] p-3 text-white relative"
+              style="background: linear-gradient(135deg, #C1272D 0%, #DC2626 50%, #8B1F23 100%);"
+            >
+              <!-- Status Badge -->
+              <div
+                :class="[
+                  'absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-semibold shadow-lg',
+                  isUpcoming(reserva.pelicula.fecha_hora_proyeccion)
+                    ? 'bg-green-500/90 text-white backdrop-blur-sm'
+                    : 'bg-gray-500/90 text-white backdrop-blur-sm'
+                ]"
+              >
+                {{ isUpcoming(reserva.pelicula.fecha_hora_proyeccion) ? '✅ Próxima' : '⏰ Pasada' }}
+              </div>
+              
+              <div class="text-center pr-20">
+                <h2 class="text-sm font-bold">CineUleam</h2>
+                <p class="text-xs text-white/90">ENTRADA DIGITAL</p>
+                <div class="mt-1 bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5 inline-block">
+                  <p class="text-xs font-semibold">Ticket Confirmado</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Imagen de la película prominente -->
+            <div class="relative h-48 bg-gray-900">
+              <img
+                :src="reserva.pelicula.url_poster || '/placeholder-movie.jpg'"
+                :alt="reserva.pelicula.nombre"
+                class="w-full h-full object-cover"
+                @error="handleImageError"
+              />
+              <!-- Overlay gradiente para mejor legibilidad -->
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+              
+              <!-- Título de la película en overlay -->
+              <div class="absolute bottom-3 left-3 right-3">
+                <h3 class="text-white text-lg font-bold leading-tight drop-shadow-lg">
+                  {{ reserva.pelicula.nombre }}
+                </h3>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="bg-black/40 backdrop-blur-sm rounded-full px-2 py-1 text-xs text-white font-medium">
+                    {{ reserva.pelicula.idioma || 'Español' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contenido del ticket inspirado en TicketModal -->
+            <div class="p-4 space-y-3 bg-white/85 backdrop-blur-sm">
+              
+              <!-- Grid de detalles como TicketModal -->
+              <div class="grid grid-cols-2 gap-2">
+                <!-- Fecha -->
+                <div class="bg-white/95 rounded-lg p-2 border border-blue-200 text-center shadow-sm">
+                  <p class="text-xs text-blue-600 font-bold mb-1">📅 FECHA</p>
+                  <p class="font-bold text-gray-800 text-xs leading-tight">
+                    {{ formatDate(reserva.pelicula.fecha_hora_proyeccion) }}
+                  </p>
+                </div>
+                
+                <!-- Hora -->
+                <div class="bg-white/95 rounded-lg p-2 border border-green-200 text-center shadow-sm">
+                  <p class="text-xs text-green-600 font-bold mb-1">🕐 HORA</p>
+                  <p class="font-bold text-gray-800 text-sm">
+                    {{ formatTime(reserva.pelicula.fecha_hora_proyeccion) }}
+                  </p>
+                </div>
+
+                <!-- Sala -->
+                <div class="bg-white/95 rounded-lg p-2 border border-purple-200 text-center shadow-sm">
+                  <p class="text-xs text-purple-600 font-bold mb-1">🏢 SALA</p>
+                  <p class="font-bold text-gray-800 text-sm">
+                    {{ reserva.pelicula.sala.nombre }}
+                  </p>
+                </div>
+
+                <!-- Asiento -->
+                <div class="bg-white/95 rounded-lg p-2 border border-red-200 text-center shadow-sm">
+                  <p class="text-xs text-red-600 font-bold mb-1">💺 ASIENTO</p>
+                  <p class="font-bold text-gray-800 text-lg">
+                    {{ reserva.asiento.fila }}{{ reserva.asiento.numero }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- QR Code mejorado como TicketModal -->
+              <div class="text-center bg-white/95 rounded-lg p-3 border-2 border-gray-100">
+                <p class="text-sm font-bold text-gray-800 mb-2 tracking-wide">📱 CÓDIGO QR</p>
+                <div class="flex justify-center bg-white rounded-lg p-3 shadow-inner">
+                  <div class="bg-white p-2 rounded-lg border-2 border-gray-200 shadow-sm">
+                    <canvas
+                      :ref="(el) => setQRRef(el, reserva.id)"
+                      class="w-24 h-24"
+                    ></canvas>
+                  </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2 font-medium">Escanea en la entrada</p>
+              </div>
+
+              <!-- ID Reserva como TicketModal -->
+              <div class="text-center bg-gray-50/90 rounded-lg p-2 border border-gray-200">
+                <p class="text-xs text-gray-600 mb-1 font-bold">🔖 ID RESERVA</p>
+                <p class="font-mono text-sm text-gray-800 bg-white/90 py-1 px-3 rounded-md border">
+                  {{ reserva.id.substring(0, 8) }}
+                </p>
+              </div>
+
+              <!-- Fecha de reserva -->
+              <div class="text-center bg-blue-50/90 rounded-lg p-2">
+                <p class="text-xs text-blue-700 font-medium">
+                  📆 Reservado el {{ formatDate(reserva.fecha_creacion) }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Footer con acciones -->
+            <div class="bg-gray-50/90 backdrop-blur-sm p-3 border-t border-[#C1272D]/20">
+              <div class="flex gap-2">
+                <router-link
+                  :to="`/movie/${reserva.pelicula.id}`"
+                  class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-3 rounded-lg transition-colors text-xs text-center flex items-center justify-center gap-1"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  Ver Detalles
+                </router-link>
+                
+                <button
+                  @click="downloadTicketPDF(reserva)"
+                  class="flex-1 bg-[#C1272D] hover:bg-[#8B1F23] text-white font-medium py-2 px-3 rounded-lg transition-colors text-xs flex items-center justify-center gap-1"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  PDF
+                </button>
+              </div>
+            </div>

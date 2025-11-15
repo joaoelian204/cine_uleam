@@ -1,14 +1,14 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuth } from "../composables/useAuth";
 
+import AlquilerSala from "../pages/AlquilerSala.vue";
 import HomePage from "../pages/HomePage.vue";
 import Login from "../pages/Login.vue";
+import MisTickets from "../pages/MisTickets.vue";
 import MovieDetails from "../pages/MovieDetails.vue";
 import Registro from "../pages/Registro.vue";
 import Reserve from "../pages/Reserve.vue";
 import ResetPassword from "../pages/ResetPassword.vue";
-import AlquilerSala from "../pages/AlquilerSala.vue";
-import MisTickets from "../pages/MisTickets.vue";
 
 const routes = [
   {
@@ -50,18 +50,18 @@ const routes = [
     path: "/mis-tickets",
     name: "misTickets",
     component: MisTickets,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
     path: "/admin",
     name: "admin",
     component: () => import("../pages/Admin.vue"),
-    meta: { requiresAuth: true, requiresAdmin: true }
-  }
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
 ];
 
 export const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes,
 });
 

@@ -1,0 +1,29 @@
+# Headers específicos para CineUleam
+# Estos se copiarán automáticamente al build
+
+# Headers para assets estáticos
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+  
+# Headers para imágenes
+/*.jpg
+  Cache-Control: public, max-age=31536000, immutable
+  Content-Type: image/jpeg
+
+/*.png
+  Cache-Control: public, max-age=31536000, immutable
+  Content-Type: image/png
+
+/*.svg
+  Cache-Control: public, max-age=31536000, immutable
+  Content-Type: image/svg+xml
+
+# Sin caché para index.html
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Headers de seguridad para todas las páginas
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block

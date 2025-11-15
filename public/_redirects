@@ -1,0 +1,47 @@
+# Redirecciones para Vue Router en Netlify - CineUleam
+# Esto asegura que todas las rutas funcionen como SPA en producción
+
+# === Redirecciones específicas para rutas de CineUleam ===
+
+# Rutas principales
+/login              /index.html   200
+/registro           /index.html   200
+/reset-password     /index.html   200
+/reset-password/*   /index.html   200
+/alquiler-sala      /index.html   200
+/mis-tickets        /index.html   200
+
+# Rutas con parámetros dinámicos
+/movie/*            /index.html   200
+/reserve/*          /index.html   200
+
+# Rutas de administración
+/admin              /index.html   200
+/admin/*            /index.html   200
+
+# Rutas alternativas comunes (por si hay links con diferentes formatos)
+/pelicula/*         /index.html   200
+/reservar/*         /index.html   200
+/tickets            /index.html   200
+/alquiler           /index.html   200
+
+# === Redirecciones especiales para Auth ===
+# Manejar tokens y parámetros de Supabase Auth
+/reset-password?*   /index.html   200
+/auth/*             /index.html   200
+/#*                 /index.html   200
+
+# === Redirecciones para assets y API ===
+# No redirigir archivos estáticos
+/assets/*           /assets/*     200
+/images/*           /images/*     200
+/css/*              /css/*        200
+/js/*               /js/*         200
+/fonts/*            /fonts/*      200
+
+# API routes (si las tienes)
+/api/*              https://kdkblwmwlnpibaysggib.supabase.co/rest/v1/:splat  200
+
+# === Redirección catch-all ===
+# Esta DEBE estar al final - redirige todo lo demás a index.html
+/*                  /index.html   200

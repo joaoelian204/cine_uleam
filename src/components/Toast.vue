@@ -2,12 +2,18 @@
   <transition name="toast">
     <div
       v-if="show"
-      class="fixed top-20 right-6 z-50 max-w-md bg-white rounded-lg shadow-2xl border-l-4 border-[#C1272D] p-4 flex items-start gap-3"
+      :class="[
+        'fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full mx-4',
+        'backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20',
+        'p-5 flex items-start gap-4',
+        toastColorClasses
+      ]"
     >
-      <div class="shrink-0">
+      <div class="shrink-0 p-2 rounded-full" :class="iconBgClass">
         <svg
           v-if="type === 'warning'"
-          class="w-6 h-6 text-[#C1272D]"
+          class="w-5 h-5"
+          :class="iconColorClass"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -21,7 +27,8 @@
         </svg>
         <svg
           v-else-if="type === 'success'"
-          class="w-6 h-6 text-green-500"
+          class="w-5 h-5"
+          :class="iconColorClass"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -35,7 +42,8 @@
         </svg>
         <svg
           v-else-if="type === 'error'"
-          class="w-6 h-6 text-red-500"
+          class="w-5 h-5"
+          :class="iconColorClass"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -49,7 +57,8 @@
         </svg>
         <svg
           v-else
-          class="w-6 h-6 text-blue-500"
+          class="w-5 h-5"
+          :class="iconColorClass"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -62,17 +71,19 @@
           />
         </svg>
       </div>
-      <div class="flex-1">
-        <h3 v-if="title" class="text-sm font-bold text-gray-900 mb-1">
+      
+      <div class="flex-1 min-w-0">
+        <h3 v-if="title" class="font-bold text-white mb-1 text-sm">
           {{ title }}
         </h3>
-        <p class="text-sm text-gray-600">{{ message }}</p>
+        <p class="text-white/90 text-sm leading-relaxed">{{ message }}</p>
       </div>
+      
       <button
         @click="close"
-        class="shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        class="shrink-0 p-2 text-white/60 hover:text-white transition-colors rounded-full hover:bg-white/10"
       >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -81,12 +92,27 @@
           />
         </svg>
       </button>
+
+      <!-- Barra de progreso -->
+      <div
+        v-if="duration && duration > 0"
+        class="absolute bottom-0 left-0 h-1 bg-white/30 rounded-b-2xl overflow-hidden"
+        :style="{ width: '100%' }"
+      >
+        <div
+          class="h-full bg-white/80 transition-all ease-linear"
+          :style="{ 
+            width: progressWidth + '%',
+            transitionDuration: duration + 'ms'
+          }"
+        ></div>
+      </div>
     </div>
   </transition>
 </template>
 
 <script setup lang="ts">
-import { watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 interface Props {
   show: boolean
@@ -94,46 +120,104 @@ interface Props {
   title?: string
   type?: 'success' | 'error' | 'warning' | 'info'
   duration?: number
+  onClose?: () => void
 }
 
 const props = withDefaults(defineProps<Props>(), {
   type: 'info',
-  duration: 3000
+  duration: 4000
 })
 
 const emit = defineEmits<{
-  (e: 'close'): void
+  close: []
 }>()
 
-let timeoutId: number | null = null
+const progressWidth = ref(100)
 
-watch(() => props.show, (newVal) => {
-  if (newVal && props.duration > 0) {
-    if (timeoutId) clearTimeout(timeoutId)
-    timeoutId = window.setTimeout(() => {
-      close()
-    }, props.duration)
+// Colores del toast según el tipo
+const toastColorClasses = computed(() => {
+  const baseClasses = 'bg-gradient-to-br from-opacity-95 to-opacity-90'
+  
+  switch (props.type) {
+    case 'success':
+      return `${baseClasses} from-green-500 to-green-600`
+    case 'error':
+      return `${baseClasses} from-red-500 to-red-600`
+    case 'warning':
+      return `${baseClasses} from-amber-500 to-orange-600`
+    case 'info':
+    default:
+      return `${baseClasses} from-blue-500 to-blue-600`
   }
 })
 
+// Color de fondo del ícono
+const iconBgClass = computed(() => {
+  switch (props.type) {
+    case 'success':
+      return 'bg-green-400/20'
+    case 'error':
+      return 'bg-red-400/20'
+    case 'warning':
+      return 'bg-amber-400/20'
+    case 'info':
+    default:
+      return 'bg-blue-400/20'
+  }
+})
+
+// Color del ícono
+const iconColorClass = computed(() => {
+  return 'text-white'
+})
+
 const close = () => {
+  props.onClose?.()
   emit('close')
 }
+
+// Auto-cerrar después de la duración especificada
+watch(
+  () => props.show,
+  (newValue) => {
+    if (newValue && props.duration > 0) {
+      // Resetear la barra de progreso
+      progressWidth.value = 100
+      
+      // Animar la barra de progreso
+      setTimeout(() => {
+        progressWidth.value = 0
+      }, 50)
+      
+      // Auto-cerrar
+      setTimeout(() => {
+        close()
+      }, props.duration)
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>
 .toast-enter-active,
 .toast-leave-active {
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .toast-enter-from {
   opacity: 0;
-  transform: translateX(100%);
+  transform: translateX(-50%) translateY(-20px) scale(0.9);
 }
 
 .toast-leave-to {
   opacity: 0;
-  transform: translateY(-20px);
+  transform: translateX(-50%) translateY(-20px) scale(0.9);
+}
+
+.toast-enter-to,
+.toast-leave-from {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
 }
 </style>
